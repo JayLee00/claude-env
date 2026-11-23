@@ -18,14 +18,14 @@ claude-env/
 
 ## 새 PC에 설치
 
-비공개 레포라서 먼저 GitHub 로그인이 필요합니다 (`gh auth login`, 또는 git이 자격 증명을 물어볼 때 로그인).
+공개 레포라 로그인 없이 바로 받을 수 있습니다.
 
 ### Windows
 
 필요: Git for Windows (`winget install Git.Git`), Node.js 18+ (`winget install OpenJS.NodeJS.LTS`, 상태줄용)
 
 ```powershell
-gh repo clone JayLee00/claude-env      # 또는 git clone https://github.com/JayLee00/claude-env.git
+git clone https://github.com/JayLee00/claude-env.git
 cd claude-env\windows
 .\install.cmd
 ```
@@ -35,7 +35,7 @@ cd claude-env\windows
 필요: git, python3, curl, Node.js 18+ (상태줄용)
 
 ```bash
-gh repo clone JayLee00/claude-env      # 또는 git clone https://github.com/JayLee00/claude-env.git
+git clone https://github.com/JayLee00/claude-env.git
 cd claude-env/linux
 ./install.sh
 ```
