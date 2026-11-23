@@ -1,0 +1,10 @@
+{
+  "display": {
+    "showMemoryUsage": true,
+    "sevenDayThreshold": 0,
+    "contextValue": "both"
+  },
+  "gitStatus": {
+    "enabled": false
+  }
+}

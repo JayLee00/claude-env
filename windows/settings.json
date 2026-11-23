@@ -1,0 +1,42 @@
+{
+  "model": "opus",
+  "statusLine": {
+    "type": "command",
+    "command": "exec \"__NODE__\" \"${CLAUDE_CONFIG_DIR:-$HOME/.claude}/plugins/claude-hud/statusline.mjs\"",
+    "refreshInterval": 60
+  },
+  "enabledPlugins": {
+    "kicad-happy@kicad-happy": true,
+    "claude-hud@claude-hud": true,
+    "obsidian@obsidian-skills": true
+  },
+  "extraKnownMarketplaces": {
+    "kicad-happy": {
+      "source": {
+        "source": "github",
+        "repo": "aklofas/kicad-happy"
+      }
+    },
+    "claude-hud": {
+      "source": {
+        "source": "github",
+        "repo": "jarrodwatts/claude-hud"
+      }
+    },
+    "obsidian-skills": {
+      "source": {
+        "source": "github",
+        "repo": "obsidianmd/obsidian-skills"
+      }
+    }
+  },
+  "modelSettings": {
+    "claude-opus-5-5": {
+      "effortLevel": "high"
+    }
+  },
+  "autoUpdatesChannel": "latest",
+  "tui": "fullscreen",
+  "theme": "dark",
+  "switchModelsOnFlag": true
+}
