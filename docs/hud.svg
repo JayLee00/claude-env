@@ -1,0 +1,28 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="860" height="168" viewBox="0 0 860 168" role="img" aria-label="claude-hud status line: model, context, usage limits, RAM">
+  <rect width="860" height="168" rx="12" fill="#0f1218"/>
+  <circle cx="22" cy="20" r="5" fill="#2b313d"/><circle cx="40" cy="20" r="5" fill="#2b313d"/><circle cx="58" cy="20" r="5" fill="#2b313d"/>
+  <text x="80" y="24" font-family="JetBrains Mono, Consolas, Menlo, monospace" font-size="11" fill="#6b7383">claude-hud</text>
+  <line x1="0" y1="38" x2="860" y2="38" stroke="#1c212b"/>
+  <g font-family="JetBrains Mono, Consolas, Menlo, DejaVu Sans Mono, monospace" font-size="14">
+    <!-- line 1: model | folder -->
+    <text x="20" y="66"><tspan fill="#39c5cf">[Opus 5.5]</tspan><tspan fill="#6b7383"> │ </tspan><tspan fill="#e3b341">12_DexVault</tspan></text>
+
+    <!-- line 2: context -->
+    <text x="20" y="92" fill="#6b7383">Context</text>
+    <rect x="116" y="80" width="84" height="14" fill="#252b36"/><rect x="116" y="80" width="17" height="14" fill="#3fb950"/>
+    <text x="210" y="92" fill="#3fb950">18% (180k/1.0M)</text>
+
+    <!-- line 3: 5-hour and weekly usage -->
+    <text x="20" y="118" fill="#6b7383">Usage</text>
+    <rect x="116" y="106" width="84" height="14" fill="#252b36"/><rect x="116" y="106" width="25" height="14" fill="#6cb6ff"/>
+    <text x="210" y="118"><tspan fill="#6cb6ff">34%</tspan><tspan fill="#d6dae2"> (resets in 2h)</tspan><tspan fill="#6b7383"> │</tspan></text>
+    <text x="388" y="118" fill="#6b7383">Weekly</text>
+    <rect x="446" y="106" width="84" height="14" fill="#252b36"/><rect x="446" y="106" width="17" height="14" fill="#6cb6ff"/>
+    <text x="540" y="118"><tspan fill="#6cb6ff">21%</tspan><tspan fill="#d6dae2"> (resets in 3d)</tspan></text>
+
+    <!-- line 4: RAM -->
+    <text x="20" y="144" fill="#6b7383">Approx RAM</text>
+    <rect x="116" y="132" width="84" height="14" fill="#252b36"/><rect x="116" y="132" width="42" height="14" fill="#6cb6ff"/>
+    <text x="210" y="144"><tspan fill="#d6dae2">32 GB / 64 GB (</tspan><tspan fill="#6cb6ff">51%</tspan><tspan fill="#d6dae2">)</tspan></text>
+  </g>
+</svg>

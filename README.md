@@ -2,6 +2,10 @@
 
 Jay의 Claude Code 환경(설정, 전역 지침, 스킬, 플러그인, 상태줄)을 새 PC에 한 번에 설치하는 레포.
 
+![claude-hud 상태줄](docs/hud.svg)
+
+**어떻게 쓰는지 한눈에 보기 → https://jaylee00.github.io/claude-env/**
+
 ```
 claude-env/
 ├── windows/            Windows 버전

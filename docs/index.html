@@ -1,0 +1,338 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Jay's Claude Code</title>
+<meta name="description" content="로봇 연구자 이재성(Jaesung Lee)이 Claude Code를 어떻게 설정하고 쓰는지: HUD 상태줄, 플러그인, 스킬, 작업 흐름.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;600&family=Noto+Sans+KR:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg: #f7f6f2;
+  --surface: #ffffff;
+  --surface-2: #efede6;
+  --text: #1d1f23;
+  --muted: #5d6370;
+  --line: #dcd9cf;
+  --accent: #b4532a;
+  --term-bg: #0f1218;
+  --term-text: #d6dae2;
+  --term-dim: #6b7383;
+  --cyan: #39c5cf;
+  --green: #3fb950;
+  --blue: #6cb6ff;
+  --yellow: #e3b341;
+  --magenta: #d2a8ff;
+  --shadow: 0 1px 2px rgba(0,0,0,.05), 0 8px 24px rgba(0,0,0,.06);
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg: #0b0d11;
+    --surface: #13161c;
+    --surface-2: #1a1e26;
+    --text: #e6e8ec;
+    --muted: #9aa1ad;
+    --line: #262b35;
+    --accent: #f0895a;
+    --term-bg: #07090c;
+    --shadow: 0 1px 2px rgba(0,0,0,.4), 0 8px 24px rgba(0,0,0,.35);
+  }
+}
+:root[data-theme="dark"] {
+  --bg: #0b0d11;
+  --surface: #13161c;
+  --surface-2: #1a1e26;
+  --text: #e6e8ec;
+  --muted: #9aa1ad;
+  --line: #262b35;
+  --accent: #f0895a;
+  --term-bg: #07090c;
+  --shadow: 0 1px 2px rgba(0,0,0,.4), 0 8px 24px rgba(0,0,0,.35);
+}
+* { box-sizing: border-box; }
+html { -webkit-text-size-adjust: 100%; }
+body {
+  margin: 0;
+  background: var(--bg);
+  color: var(--text);
+  font-family: "Noto Sans KR", system-ui, -apple-system, "Segoe UI", sans-serif;
+  font-size: 16px;
+  line-height: 1.7;
+}
+.wrap { max-width: 980px; margin: 0 auto; padding: 0 16px; }
+code, pre, .mono { font-family: "JetBrains Mono", ui-monospace, Consolas, monospace; }
+code { font-size: .88em; background: var(--surface-2); padding: .1em .35em; border-radius: 4px; }
+a { color: var(--accent); }
+
+header.hero { padding: 72px 0 32px; }
+.eyebrow { font-family: "JetBrains Mono", monospace; font-size: 13px; color: var(--accent); letter-spacing: .04em; }
+h1 { font-size: clamp(30px, 5.5vw, 48px); line-height: 1.2; margin: 10px 0 16px; letter-spacing: -.02em; }
+.lede { color: var(--muted); font-size: 18px; max-width: 680px; margin: 0; }
+.chips { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 22px; }
+.chip { font-family: "JetBrains Mono", monospace; font-size: 12.5px; border: 1px solid var(--line); background: var(--surface); padding: 4px 10px; border-radius: 999px; color: var(--muted); }
+.chip b { color: var(--text); font-weight: 600; }
+
+section { padding: 40px 0; }
+h2 { font-size: 24px; margin: 0 0 6px; letter-spacing: -.01em; }
+.sub { color: var(--muted); margin: 0 0 22px; }
+
+/* terminal */
+.term { background: var(--term-bg); color: var(--term-text); border-radius: 12px; box-shadow: var(--shadow); overflow: hidden; border: 1px solid #1f2430; }
+.term-bar { display: flex; align-items: center; gap: 7px; padding: 10px 14px; border-bottom: 1px solid #1c212b; }
+.dot { width: 11px; height: 11px; border-radius: 50%; background: #2b313d; }
+.term-title { margin-left: 8px; font-family: "JetBrains Mono", monospace; font-size: 12px; color: var(--term-dim); }
+.term pre { margin: 0; padding: 18px 20px; font-size: 13.5px; line-height: 1.65; overflow-x: auto; white-space: pre; }
+.term .convo { border-bottom: 1px dashed #232936; color: var(--term-text); }
+.term .hud { background: #0b0e13; }
+.dim { color: var(--term-dim); }
+.c-cyan { color: var(--cyan); } .c-green { color: var(--green); } .c-blue { color: var(--blue); }
+.c-yellow { color: var(--yellow); } .c-mag { color: var(--magenta); } .c-user { color: #fff; font-weight: 600; }
+.mk { display: inline-block; min-width: 18px; height: 18px; line-height: 18px; text-align: center; border-radius: 50%; background: var(--accent); color: #fff; font-size: 11px; font-weight: 700; margin-left: 10px; font-family: "Noto Sans KR", sans-serif; vertical-align: 1px; }
+.b { display: inline-block; height: .95em; vertical-align: -.12em; }
+.b.g { background: var(--green); } .b.u { background: var(--blue); } .b.e { background: #252b36; }
+.example-tag { font-size: 12px; color: var(--muted); margin-top: 8px; }
+
+.legend { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; margin-top: 20px; }
+.legend div { background: var(--surface); border: 1px solid var(--line); border-radius: 10px; padding: 14px 16px; font-size: 14.5px; }
+.legend b { display: block; margin-bottom: 2px; }
+.legend .mk { margin: 0 8px 0 0; }
+
+/* map */
+.map { display: grid; grid-template-columns: 1fr 1.1fr 1fr; gap: 18px; align-items: stretch; }
+.col { display: flex; flex-direction: column; gap: 12px; }
+.col h3 { font-size: 13px; font-family: "JetBrains Mono", monospace; color: var(--muted); font-weight: 600; margin: 0 0 2px; letter-spacing: .03em; }
+.card { background: var(--surface); border: 1px solid var(--line); border-radius: 12px; padding: 14px 16px; box-shadow: var(--shadow); }
+.card .t { font-weight: 700; display: flex; align-items: center; gap: 8px; }
+.card .d { color: var(--muted); font-size: 14px; margin-top: 4px; }
+.tag { font-family: "JetBrains Mono", monospace; font-size: 11px; padding: 1px 7px; border-radius: 5px; background: var(--surface-2); color: var(--muted); font-weight: 400; }
+.core { display: flex; flex-direction: column; justify-content: center; text-align: center; background: var(--term-bg); color: var(--term-text); border-radius: 16px; padding: 26px 18px; box-shadow: var(--shadow); position: relative; border: 1px solid #1f2430; }
+.core .big { font-family: "JetBrains Mono", monospace; font-size: 22px; font-weight: 600; color: #fff; }
+.core .model { color: var(--cyan); font-family: "JetBrains Mono", monospace; margin-top: 6px; }
+.core ul { list-style: none; padding: 0; margin: 16px 0 0; font-size: 13.5px; color: var(--term-dim); line-height: 1.9; }
+.core ul b { color: var(--term-text); font-weight: 500; }
+@media (min-width: 761px) {
+  .core::before, .core::after { content: ""; position: absolute; top: 50%; width: 18px; height: 2px; background: var(--accent); }
+  .core::before { left: -18px; } .core::after { right: -18px; }
+}
+@media (max-width: 900px) {
+  .legend { grid-template-columns: repeat(2, 1fr); }
+}
+@media (max-width: 760px) {
+  .map, .flows { grid-template-columns: 1fr; }
+  .legend { grid-template-columns: 1fr; }
+  .term pre { font-size: 12px; padding: 14px; }
+}
+
+/* flows */
+.flows { display: grid; grid-template-columns: repeat(2, 1fr); gap: 16px; }
+.flow { background: var(--surface); border: 1px solid var(--line); border-radius: 12px; padding: 18px; box-shadow: var(--shadow); }
+.flow h3 { margin: 0 0 4px; font-size: 17px; }
+.flow .say { font-family: "JetBrains Mono", monospace; font-size: 13px; color: var(--accent); margin-bottom: 12px; }
+.steps { list-style: none; padding: 0; margin: 0; counter-reset: s; }
+.steps li { counter-increment: s; position: relative; padding: 0 0 10px 30px; font-size: 14.5px; }
+.steps li::before { content: counter(s); position: absolute; left: 0; top: 2px; width: 20px; height: 20px; border-radius: 50%; border: 1px solid var(--line); font-size: 11px; text-align: center; line-height: 18px; color: var(--muted); font-family: "JetBrains Mono", monospace; }
+.steps li:not(:last-child)::after { content: ""; position: absolute; left: 10px; top: 24px; bottom: 2px; width: 1px; background: var(--line); }
+
+/* table */
+.tbl { width: 100%; border-collapse: collapse; background: var(--surface); border: 1px solid var(--line); border-radius: 12px; overflow: hidden; font-size: 14.5px; }
+.tbl th, .tbl td { text-align: left; padding: 11px 14px; border-bottom: 1px solid var(--line); vertical-align: top; }
+.tbl th { background: var(--surface-2); font-weight: 600; font-size: 13px; color: var(--muted); }
+.tbl tr:last-child td { border-bottom: 0; }
+.tbl td:first-child { white-space: nowrap; }
+.tblwrap { overflow-x: auto; border-radius: 12px; }
+
+.install { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 16px; }
+.install .term pre { font-size: 13px; }
+
+footer { padding: 40px 0 64px; color: var(--muted); font-size: 14px; border-top: 1px solid var(--line); margin-top: 24px; }
+.theme-btn { position: fixed; top: 14px; right: 14px; border: 1px solid var(--line); background: var(--surface); color: var(--text); border-radius: 999px; padding: 6px 12px; font-size: 13px; cursor: pointer; font-family: inherit; }
+@media (max-width: 760px) {
+  .flows { grid-template-columns: 1fr; }
+  .tbl { font-size: 13.5px; }
+  .tbl th, .tbl td { padding: 9px 10px; }
+  .tbl td:first-child { white-space: normal; word-break: break-all; width: 34%; }
+  .tbl td:nth-child(2) { width: 33%; }
+}
+</style>
+</head>
+<body>
+<button class="theme-btn" id="themeBtn" type="button" aria-label="테마 전환">◐ 테마</button>
+
+<div class="wrap">
+  <header class="hero">
+    <div class="eyebrow">~/.claude · claude-env</div>
+    <h1>로봇 연구실에서 쓰는<br>나의 Claude Code</h1>
+    <p class="lede">다지 로봇손을 연구하는 이재성(Jaesung Lee, KIST · 고려대)이 Claude Code를 어떻게 설정하고, 매일 무슨 일에 쓰는지 정리했습니다. 이 설정은 아래 레포에서 그대로 받아 쓸 수 있습니다.</p>
+    <div class="chips">
+      <span class="chip">model <b>Opus 5.5</b></span>
+      <span class="chip">effort <b>high</b></span>
+      <span class="chip">tui <b>fullscreen</b></span>
+      <span class="chip">theme <b>dark</b></span>
+      <span class="chip">plugins <b>3</b></span>
+      <span class="chip">OS <b>Windows + Linux</b></span>
+    </div>
+  </header>
+
+  <section id="hud">
+    <h2>화면: 하단 HUD</h2>
+    <p class="sub">전체 화면 TUI 맨 아래에 <a href="https://github.com/jarrodwatts/claude-hud">claude-hud</a> 상태줄을 띄워 둡니다. 모델, 컨텍스트, 사용량 한도, 메모리를 한눈에 봅니다.</p>
+
+    <div class="term" role="img" aria-label="Claude Code 터미널 화면 예시와 하단 claude-hud 상태줄">
+      <div class="term-bar"><span class="dot"></span><span class="dot"></span><span class="dot"></span><span class="term-title">claude — 12_DexVault</span></div>
+<pre class="convo"><span class="c-user">&gt; graspium 올려줘</span>
+
+<span class="c-mag">●</span> Inbox에서 발표자료 PDF 2개를 찾았습니다. 슬라이드를 읽고 항목을 채울게요.
+<span class="c-mag">●</span> <span class="dim">Read</span> 13_Graspium_Inbox/*.pdf <span class="dim">(pages 1-20)</span>
+<span class="c-mag">●</span> <span class="dim">Bash</span> python scripts/publish_local.py entry.json --dry-run <span class="c-green">✓</span>
+  두 편 모두 검사를 통과했습니다. id, 제목, venue, 썸네일 쪽을 확인하고 올려도 될까요?</pre>
+<pre class="hud"><span class="c-cyan">[Opus 5.5]</span> <span class="dim">│</span> <span class="c-yellow">12_DexVault</span><span class="mk">1</span>
+<span class="dim">Context   </span> <i class="b g" style="width:2ch"></i><i class="b e" style="width:8ch"></i> <span class="c-green">18% (180k/1.0M)</span><span class="mk">2</span>
+<span class="dim">Usage     </span> <i class="b u" style="width:3ch"></i><i class="b e" style="width:7ch"></i> <span class="c-blue">34%</span> (resets in 2h) <span class="dim">|</span> <span class="dim">Weekly</span>  <i class="b u" style="width:2ch"></i><i class="b e" style="width:8ch"></i> <span class="c-blue">21%</span> (resets in 3d)<span class="mk">3</span>
+<span class="dim">Approx RAM</span> <i class="b u" style="width:5ch"></i><i class="b e" style="width:5ch"></i> 32 GB / 64 GB (<span class="c-blue">51%</span>)<span class="mk">4</span></pre>
+    </div>
+    <p class="example-tag">위 대화는 예시입니다. HUD 네 줄은 실제 claude-hud에 예시 세션 값을 넣어 렌더링한 결과입니다.</p>
+
+    <div class="legend">
+      <div><span class="mk">1</span><b>모델 · 작업 폴더</b>지금 어느 모델로, 어느 프로젝트에서 일하는지.</div>
+      <div><span class="mk">2</span><b>컨텍스트</b>퍼센트와 토큰 수를 같이 표시 (<code>contextValue: both</code>).</div>
+      <div><span class="mk">3</span><b>5시간 · 주간 사용량</b>주간 한도는 항상 표시 (<code>sevenDayThreshold: 0</code>).</div>
+      <div><span class="mk">4</span><b>메모리</b>로컬 PC RAM 사용량 (<code>showMemoryUsage</code>). 학습·시뮬레이션과 같이 돌릴 때 봅니다.</div>
+    </div>
+    <p class="sub" style="margin-top:16px">렉을 줄이려고 갱신 주기는 60초로 늘렸고, git 상태 표시는 껐습니다. 상태줄은 node를 절대 경로로 직접 실행합니다.</p>
+  </section>
+
+  <section id="map">
+    <h2>구성</h2>
+    <p class="sub">PC 두 대에서 같은 설정을 쓰고, 플러그인과 스킬로 연구 일을 붙여 둡니다.</p>
+    <div class="map">
+      <div class="col">
+        <h3>어디서</h3>
+        <div class="card"><div class="t">Windows PC <span class="tag">PowerShell · Git Bash</span></div><div class="d">논문 읽기와 정리, 행정, 발표자료, 회로 설계.</div></div>
+        <div class="card"><div class="t">Linux PC <span class="tag">Ubuntu 22.04</span></div><div class="d">로봇 데이터 수집과 저장, 학습 서버 작업. Windows에서 SSH로 붙어 씁니다.</div></div>
+        <div class="card"><div class="t">claude.ai 계정</div><div class="d">docx · pptx · pdf · xlsx 스킬과 Notion, Google Drive 같은 커넥터는 로그인하면 따라옵니다.</div></div>
+      </div>
+      <div class="core">
+        <div class="big">claude</div>
+        <div class="model">Opus 5.5 · effort high</div>
+        <ul>
+          <li><b>전역 지침</b> 한국어로 답하기</li>
+          <li><b>화면</b> fullscreen · dark · HUD</li>
+          <li><b>업데이트</b> latest 채널</li>
+          <li><b>설치</b> 스크립트 한 번</li>
+        </ul>
+      </div>
+      <div class="col">
+        <h3>무엇으로</h3>
+        <div class="card"><div class="t">claude-hud <span class="tag">plugin</span></div><div class="d">하단 상태줄.</div></div>
+        <div class="card"><div class="t">obsidian <span class="tag">plugin</span></div><div class="d">Obsidian 볼트 노트, Bases, Canvas 다루기. 연구 노트 볼트 '재뇌투'에 씁니다.</div></div>
+        <div class="card"><div class="t">kicad-happy <span class="tag">plugin</span></div><div class="d">KiCad 회로·PCB 리뷰, BOM, DigiKey·Mouser·LCSC 부품 조달, JLCPCB 주문 준비.</div></div>
+        <div class="card"><div class="t">graspium-publish <span class="tag">skill</span></div><div class="d">읽은 논문 발표자료를 연구실 논문 공유 사이트와 볼트에 등록.</div></div>
+      </div>
+    </div>
+  </section>
+
+  <section id="flows">
+    <h2>자주 하는 일</h2>
+    <p class="sub">말 한 줄로 시작해서 Claude가 절차를 끝까지 밟습니다. 올리기와 push 같은 바깥으로 나가는 단계는 확인을 받고 진행합니다.</p>
+    <div class="flows">
+      <div class="flow">
+        <h3>읽은 논문 공유</h3>
+        <div class="say">&gt; graspium 올려줘</div>
+        <ol class="steps">
+          <li>발표자료 PPT를 PDF로 inbox에 넣기만 함</li>
+          <li>슬라이드를 읽고 arXiv에서 제목·저자 확인</li>
+          <li>분야, 키워드, TL;DR, 썸네일 쪽을 채우고 dry-run</li>
+          <li>확인 후 <a href="https://graspium-official.github.io">Graspium</a> 사이트에 카드로 push</li>
+          <li>같은 논문을 연구 노트 볼트에도 정리</li>
+        </ol>
+      </div>
+      <div class="flow">
+        <h3>연구 노트 볼트 '재뇌투'</h3>
+        <div class="say">&gt; 재뇌투에 넣어줘</div>
+        <ol class="steps">
+          <li>논문 원문 PDF를 받아 원문 기준으로 노트 작성</li>
+          <li>내 슬라이드 정리는 '내 정리' 섹션에 따로</li>
+          <li>매일 쓰고 있는 원고 주제에 맞춰 논문 추천</li>
+        </ol>
+      </div>
+      <div class="flow">
+        <h3>회로와 부품</h3>
+        <div class="say">&gt; 이 보드 주문 전에 봐줘</div>
+        <ol class="steps">
+          <li>KiCad 회로도·PCB에서 전원 트리, DRC/ERC, DFM 점검</li>
+          <li>데이터시트에서 핀·사양 확인</li>
+          <li>부품 재고·가격 비교, BOM과 JLCPCB 파일 준비</li>
+        </ol>
+      </div>
+      <div class="flow">
+        <h3>로봇 코드와 실험</h3>
+        <div class="say">&gt; ssh로 Linux PC에서 돌려줘</div>
+        <ol class="steps">
+          <li>Franka FR3 · 로봇손 제어, 원격조작 코드 수정</li>
+          <li>수집한 데이터 정리와 학습 작업</li>
+          <li>결과를 GitHub 레포로 커밋·push</li>
+        </ol>
+      </div>
+    </div>
+  </section>
+
+  <section id="settings">
+    <h2>settings.json 핵심</h2>
+    <p class="sub">설치 스크립트가 기존 설정에 병합하는 값들입니다.</p>
+    <div class="tblwrap">
+    <table class="tbl">
+      <thead><tr><th>키</th><th>값</th><th>이유</th></tr></thead>
+      <tbody>
+        <tr><td><code>model</code></td><td><code>opus</code></td><td>기본은 가장 강한 모델</td></tr>
+        <tr><td><code>modelSettings</code></td><td>Opus 5.5 → <code>effortLevel: high</code></td><td>논문·코드 작업 품질 우선</td></tr>
+        <tr><td><code>switchModelsOnFlag</code></td><td><code>true</code></td><td>필요할 때 모델 전환</td></tr>
+        <tr><td><code>tui</code> · <code>theme</code></td><td><code>fullscreen</code> · <code>dark</code></td><td>터미널 전체를 작업 화면으로</td></tr>
+        <tr><td><code>statusLine</code></td><td>claude-hud, 60초 갱신</td><td>2초에서 늘려 렉 감소</td></tr>
+        <tr><td><code>autoUpdatesChannel</code></td><td><code>latest</code></td><td>새 기능 바로 받기</td></tr>
+        <tr><td><code>enabledPlugins</code></td><td>claude-hud, obsidian, kicad-happy</td><td>위 '구성' 참고</td></tr>
+      </tbody>
+    </table>
+    </div>
+  </section>
+
+  <section id="install">
+    <h2>그대로 가져다 쓰기</h2>
+    <p class="sub">기존 설정은 백업한 뒤 병합합니다. 여러 번 실행해도 안전합니다. 자세한 내용은 <a href="https://github.com/JayLee00/claude-env">레포 README</a>에 있습니다.</p>
+    <div class="install">
+      <div class="term">
+        <div class="term-bar"><span class="dot"></span><span class="dot"></span><span class="dot"></span><span class="term-title">Windows · PowerShell</span></div>
+<pre><span class="dim">&gt;</span> git clone https://github.com/JayLee00/claude-env.git
+<span class="dim">&gt;</span> cd claude-env\windows
+<span class="dim">&gt;</span> .\install.cmd</pre>
+      </div>
+      <div class="term">
+        <div class="term-bar"><span class="dot"></span><span class="dot"></span><span class="dot"></span><span class="term-title">Linux · bash</span></div>
+<pre><span class="dim">$</span> git clone https://github.com/JayLee00/claude-env.git
+<span class="dim">$</span> cd claude-env/linux
+<span class="dim">$</span> ./install.sh</pre>
+      </div>
+    </div>
+  </section>
+
+  <footer>
+    Jaesung Lee · <a href="https://jaylee00.github.io/">jaylee00.github.io</a> · <a href="https://github.com/JayLee00/claude-env">github.com/JayLee00/claude-env</a>
+  </footer>
+</div>
+
+<script>
+(function () {
+  var root = document.documentElement, btn = document.getElementById('themeBtn');
+  try { var saved = localStorage.getItem('theme'); if (saved) root.setAttribute('data-theme', saved); } catch (e) {}
+  btn.addEventListener('click', function () {
+    var cur = root.getAttribute('data-theme') ||
+      (window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light');
+    var next = cur === 'dark' ? 'light' : 'dark';
+    root.setAttribute('data-theme', next);
+    try { localStorage.setItem('theme', next); } catch (e) {}
+  });
+})();
+</script>
+</body>
+</html>
